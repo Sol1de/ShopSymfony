@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Clients – Fidélité{% endblock %}
+
+{% block body %}
+    <h1>Clients – Scores de fidélité</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Client</th>
+                <th>Email</th>
+                <th>VIP</th>
+                <th>Score</th>
+                <th>Niveau</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in clients %}
+                <tr>
+                    <td>{{ row.client.prenom }} {{ row.client.nom }}</td>
+                    <td>{{ row.client.email }}</td>
+                    <td>{{ row.client.vip ? 'Oui' : 'Non' }}</td>
+                    <td>{{ row.score }}</td>
+                    <td>{{ row.niveau }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5">Aucun client.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -16,28 +16,20 @@ class LigneCommandeRepository extends ServiceEntityRepository
         parent::__construct($registry, LigneCommande::class);
     }
 
-    //    /**
-    //     * @return LigneCommande[] Returns an array of LigneCommande objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('l')
-    //            ->andWhere('l.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('l.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?LigneCommande
-    //    {
-    //        return $this->createQueryBuilder('l')
-    //            ->andWhere('l.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function findTop5Produits(): array
+    {
+        return $this->getEntityManager()
+            ->createQuery(
+                'SELECT p.nom, p.reference, SUM(l.quantite) AS total_vendu
+                 FROM App\Entity\LigneCommande l
+                 JOIN l.produit p
+                 JOIN l.commande c
+                 WHERE c.statut = :statut
+                 GROUP BY p.id, p.nom, p.reference
+                 ORDER BY total_vendu DESC'
+            )
+            ->setMaxResults(5)
+            ->setParameter('statut', \App\Entity\Commande::STATUT_VALIDEE)
+            ->getResult();
+    }
 }

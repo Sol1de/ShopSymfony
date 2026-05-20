@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Commande;
 use App\Form\CommandeType;
 use App\Repository\CommandeRepository;
+use App\Service\CommandeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,6 +17,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted("ROLE_USER")]
 final class CommandeController extends AbstractController
 {
+    public function __construct(
+        private readonly CommandeService $commandeService,
+    ) {}
+
     #[Route(name: 'app_commande_index', methods: ['GET'])]
     public function index(CommandeRepository $commandeRepository): Response
     {
@@ -68,6 +73,23 @@ final class CommandeController extends AbstractController
             'commande' => $commande,
             'form' => $form,
         ]);
+    }
+
+    #[Route('/{id}/valider', name: 'app_commande_valider', methods: ['POST'])]
+    public function valider(Request $request, Commande $commande): Response
+    {
+        if (!$this->isCsrfTokenValid('valider' . $commande->getId(), $request->getPayload()->getString('_token'))) {
+            throw $this->createAccessDeniedException('Token CSRF invalide.');
+        }
+
+        try {
+            $this->commandeService->valider($commande);
+            $this->addFlash('success', 'Commande validée avec succès.');
+        } catch (\RuntimeException $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_commande_show', ['id' => $commande->getId()]);
     }
 
     #[Route('/{id}', name: 'app_commande_delete', methods: ['POST'])]

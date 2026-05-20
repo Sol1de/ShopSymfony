@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Service\StatistiqueService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -16,28 +17,21 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class RapportMensuelCommand extends Command
 {
+    public function __construct(
+        private readonly StatistiqueService $statistiqueService,
+    ) {
+        parent::__construct();
+    }
+
     protected function configure(): void
     {
         $this
-            // Obligatoire
             ->addArgument('mois', InputArgument::REQUIRED, 'Mois au format YYYY-MM')
-
-            // Facultatif avec valeur par défaut
             ->addArgument('annee', InputArgument::OPTIONAL, 'Année', date('Y'))
-
-            // Liste de valeurs
             ->addArgument('ids', InputArgument::IS_ARRAY, 'Liste d\'IDs')
-
-            // Option avec valeur
             ->addOption('format', 'f', InputOption::VALUE_OPTIONAL, 'Format de sortie (csv|json)', 'csv')
-
-            // Option booléenne (flag)
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Simulation sans écriture')
-
-            // Option obligatoire si présente
             ->addOption('output', 'o', InputOption::VALUE_REQUIRED, 'Fichier de sortie')
-
-            // Option sans valeur (flag)
             ->addOption('email', null, InputOption::VALUE_NONE, 'Envoyer le rapport par email')
         ;
     }
@@ -52,21 +46,44 @@ class RapportMensuelCommand extends Command
 
         $io->title("Génération du rapport - $mois");
 
-        // Validation basique
         if (!preg_match('/^\d{4}-\d{2}$/', $mois)) {
             $io->error('Format de mois invalide. Utilisez YYYY-MM (ex: 2024-03)');
             return Command::FAILURE;
         }
 
-        $io->info("Format de sortie : $format");
+        $annee = (int) explode('-', $mois)[0];
 
-        // Simulation de traitement
-        $io->progressStart(100);
-        for ($i = 0; $i < 100; $i++) {
-            usleep(10000);
-            $io->progressAdvance();
+        $io->section('Statistiques générales');
+        $io->table(
+            ['Indicateur', 'Valeur'],
+            [
+                ['Taux de conversion', number_format($this->statistiqueService->tauxConversion() * 100, 1) . ' %'],
+                ['Panier moyen', number_format($this->statistiqueService->panierMoyen(), 2) . ' €'],
+            ]
+        );
+
+        $moisNoms  = ['', 'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+        $caParMois = $this->statistiqueService->caParMois($annee);
+
+        $io->section("Chiffre d'affaires par mois ($annee)");
+        $rows = [];
+        foreach ($caParMois as $num => $ca) {
+            $rows[] = [$moisNoms[$num], number_format($ca, 2) . ' €'];
         }
-        $io->progressFinish();
+        $io->table(['Mois', 'CA'], $rows);
+
+        $io->section('Top 5 produits');
+        $top5 = $this->statistiqueService->top5Produits();
+        if (empty($top5)) {
+            $io->info('Aucune vente enregistrée.');
+        } else {
+            $io->table(
+                ['Produit', 'Référence', 'Qté vendue'],
+                array_map(static fn ($p) => [$p['nom'], $p['reference'], $p['total_vendu']], $top5)
+            );
+        }
+
+        $io->info("Format de sortie : $format");
 
         if ($email) {
             $io->note('Envoi par email activé');

@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord – Statistiques{% endblock %}
+
+{% block body %}
+    <h1>Tableau de bord des ventes</h1>
+
+    <form method="get">
+        <label for="annee">Année :</label>
+        <input type="number" id="annee" name="annee" value="{{ annee }}" min="2000" max="2100">
+        <button type="submit">Filtrer</button>
+    </form>
+
+    <h2>Indicateurs clés</h2>
+    <table>
+        <tbody>
+            <tr>
+                <th>Taux de conversion</th>
+                <td>{{ (tauxConversion * 100)|number_format(1) }} %</td>
+            </tr>
+            <tr>
+                <th>Panier moyen</th>
+                <td>{{ panierMoyen|number_format(2) }} €</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Chiffre d'affaires {{ annee }} par mois</h2>
+    {% set moisNoms = {1: 'Jan', 2: 'Fév', 3: 'Mar', 4: 'Avr', 5: 'Mai', 6: 'Jun', 7: 'Jul', 8: 'Aoû', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Déc'} %}
+    <table>
+        <thead>
+            <tr>
+                <th>Mois</th>
+                <th>CA (€)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for num, ca in caParMois %}
+                <tr>
+                    <td>{{ moisNoms[num] }}</td>
+                    <td>{{ ca|number_format(2) }} €</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Top 5 produits</h2>
+    {% if top5Produits is empty %}
+        <p>Aucune vente enregistrée.</p>
+    {% else %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Référence</th>
+                    <th>Qté vendue</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for produit in top5Produits %}
+                    <tr>
+                        <td>{{ produit.nom }}</td>
+                        <td>{{ produit.reference }}</td>
+                        <td>{{ produit.total_vendu }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

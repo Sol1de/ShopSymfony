@@ -38,5 +38,14 @@
 
     <a href="{{ path('app_commande_edit', {'id': commande.id}) }}">edit</a>
 
+    {% if commande.statut == 'panier' or commande.statut == 'en_attente' %}
+        <form method="post" action="{{ path('app_commande_valider', {'id': commande.id}) }}" style="display:inline">
+            <input type="hidden" name="_token" value="{{ csrf_token('valider' ~ commande.id) }}">
+            <button type="submit" onclick="return confirm('Confirmer la validation de cette commande ?')">
+                Valider la commande
+            </button>
+        </form>
+    {% endif %}
+
     {{ include('commande/_delete_form.html.twig') }}
 {% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon programme fidélité{% endblock %}
+
+{% block body %}
+    <h1>Programme Fidélité</h1>
+
+    <p>Bonjour <strong>{{ client.prenom }} {{ client.nom }}</strong></p>
+
+    <table>
+        <tbody>
+            <tr>
+                <th>Score de fidélité</th>
+                <td>{{ score }} points</td>
+            </tr>
+            <tr>
+                <th>Niveau</th>
+                <td>{{ niveau }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Barème des niveaux</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Niveau</th>
+                <th>Points requis</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Bronze</td><td>0 – 99</td></tr>
+            <tr><td>Argent</td><td>100 – 299</td></tr>
+            <tr><td>Or</td><td>300 – 599</td></tr>
+            <tr><td>Platine</td><td>600+</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Comment gagner des points ?</h2>
+    <ul>
+        <li>+1 point par commande validée</li>
+        <li>+20 points si vous êtes client depuis 2 ans ou plus</li>
+        <li>+50 points si votre total d'achats dépasse 1 000 €</li>
+    </ul>
+
+    <a href="{{ path('app_commande_index') }}">Voir mes commandes</a>
+{% endblock %}
