@@ -1,0 +1,32 @@
+
+services:
+
+  app:
+    build:
+      context: .
+      target: builder
+    volumes:
+      - .:/app
+    environment:
+      APP_ENV: dev
+      APP_DEBUG: "1"
+
+  caddy:
+    volumes:
+      - .:/app
+
+  database:
+    ports:
+      - "3306:3306"
+
+###> symfony/mailer ###
+  mailer:
+    image: axllent/mailpit
+    container_name: shopsymfony-mailer
+    ports:
+      - "1025"
+      - "8025:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+###< symfony/mailer ###

@@ -1,0 +1,46 @@
+
+services:
+
+  app:
+    build: .
+    container_name: shopsymfony-app
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:alpine
+    container_name: shopsymfony-caddy
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+
+###> doctrine/doctrine-bundle ###
+  database:
+    image: mysql:${MYSQL_VERSION:-8.0}
+    container_name: shopsymfony-db
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-shop_symfony}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-}
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - database_data:/var/lib/mysql:rw
+###< doctrine/doctrine-bundle ###
+
+volumes:
+###> doctrine/doctrine-bundle ###
+  database_data:
+###< doctrine/doctrine-bundle ###
